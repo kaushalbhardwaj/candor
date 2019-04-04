@@ -1,5 +1,5 @@
 # Candor
-Candor is an AB testing platform, empowering you to test, learn and deploy better products in the market. It enables your customers to have better experience while using your product.
+Candor is an AB testing platform, empowering you to test, learn and deploy better products in the market. It enables your customers to have better experience while using your product. It enables you to know more about your customers behaviour while using your product which in result helps you to take better decisions for your product.
 
 ## Setup
 Make sure you have the jcenter repo in your project level `build.gradle`  
@@ -33,7 +33,7 @@ String experiment = KEY_EXPERIMENT;
 String userId = USER_ID;
 Variant variant = candor.activateExperiment(experiment, userId);
 ```
-Remember to replace `KEY_EXPERIMENT` the key of the experiment you want to experiment in your app\n
+Remember to replace `KEY_EXPERIMENT` the key of the experiment you want to experiment in your app  
 Remember to replace `USER_ID` the user id of the user
 
 After activating the experiment you will get the variant for the user which you can use to do different things
