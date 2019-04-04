@@ -1,5 +1,5 @@
 # Candor
-Candor is an experimentation platform, empowering you to test, learn and deploy better products in the market
+Candor is an AB testing platform, empowering you to test, learn and deploy better products in the market. It enables your customers to have better experience while using your product.
 
 ## Setup
 Make sure you have the jcenter repo in your project level `build.gradle`  
@@ -39,6 +39,12 @@ Remember to replace `USER_ID` the user id of the user
 
 After activating the experiment you will get the variant for the user which you can use to do different things
 (TODO much better can be written with the code)
+
+```java
+
+
+
+```
 
 ## Tracking
 After installing the library into your Android app, you can track events in your app using the name of the event and properties associated with the event.
