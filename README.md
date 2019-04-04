@@ -33,7 +33,7 @@ String experiment = KEY_EXPERIMENT;
 String userId = USER_ID;
 Variant variant = candor.activateExperiment(experiment, userId);
 ```
-Remember to replace `KEY_EXPERIMENT` the key of the experiment you want to experiment in your app
+Remember to replace `KEY_EXPERIMENT` the key of the experiment you want to experiment in your app\n
 Remember to replace `USER_ID` the user id of the user
 
 After activating the experiment you will get the variant for the user which you can use to do different things
