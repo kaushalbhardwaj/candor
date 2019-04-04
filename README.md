@@ -55,6 +55,7 @@ With the `candor` object created in [the last step](#integration) a call to `tra
 JSONObject properties = new JSONObject();
 props.put("Property name", "Property Value");
 props.put("Property 2", "Property Value 2");
+
 candor.track("Event name", properties);
 ```
 
