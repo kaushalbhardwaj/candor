@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">candor_sdk</string>
+    <string name="experiment_worker_tag">get_experiment_worker_tag</string>
 </resources>

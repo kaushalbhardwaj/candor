@@ -1,12 +1,11 @@
 package com.indusbit.candor
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import com.indusbit.candorsdk.Candor
-import com.indusbit.candorsdk.Variant
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,7 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         val variant = Candor.getExperiment("btn_colour")
 
-        if(variant != null)
+        if (variant != null)
             Log.d("mainActivity", variant.key)
         val button = findViewById<Button>(R.id.button);
         button.setOnClickListener {

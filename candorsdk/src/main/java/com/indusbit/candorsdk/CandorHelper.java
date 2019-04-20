@@ -2,20 +2,18 @@ package com.indusbit.candorsdk;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 import org.json.JSONObject;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 class CandorHelper {
 
@@ -46,44 +44,7 @@ class CandorHelper {
         context = con;
         Map<String, String> deviceInfo = getDeviceInfo(context);
         registerActivityLifecycleCallbacks(context);
-        String accountToken = null;
-
-        try {
-            ApplicationInfo info = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle bundle = info.metaData;
-            accountToken = bundle.getString("io.candor.AccountToken");
-            Log.d(TAG, accountToken);
-
-        } catch (Exception exception) {
-
-            Log.e(TAG, "please add the account token");
-            return;
-        }
-
-        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-
-        Call<Experiments> call = apiService.getExperiments(accountToken, "kaushal");
-        try {
-
-            call.enqueue(new Callback<Experiments>() {
-                @Override
-                public void onResponse(Call<Experiments> call, Response<Experiments> response) {
-
-                    CandorDBHelper dbHelper = new CandorDBHelper(context);
-                    dbHelper.saveExperiments(response.body().experiments);
-
-                }
-
-                @Override
-                public void onFailure(Call<Experiments> call, Throwable t) {
-                    Log.d(TAG, "error is-" + t.toString());
-
-                }
-            });
-
-        } catch (Exception e) {
-            Log.d(TAG, "exception");
-        }
+        registerExperimentWorker();
 
     }
 
@@ -97,6 +58,16 @@ class CandorHelper {
                 Log.i(TAG, "Context is not an Application, Candor will not automatically show A/B test experiments. We won't be able to automatically flush on an app background.");
             }
         }
+    }
+
+    public static void registerExperimentWorker() {
+        WorkManager workManager = WorkManager.getInstance();
+        workManager.cancelAllWorkByTag(context.getString(R.string.experiment_worker_tag));
+        PeriodicWorkRequest getRequest = new PeriodicWorkRequest.Builder(GetExperimentWorker.class, 15, TimeUnit.HOURS)
+                .addTag(context.getString(R.string.experiment_worker_tag))
+                .build();
+        workManager.enqueue(getRequest);
+
     }
 
     public static Variant getExperiment(String experimentKey) {
