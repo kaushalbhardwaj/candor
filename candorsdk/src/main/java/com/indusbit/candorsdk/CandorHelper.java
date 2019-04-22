@@ -15,12 +15,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-class CandorHelper {
+public class CandorHelper {
 
     private static final String TAG = "CandorHelper";
     private static Context context;
 
-    public static Map<String, String> getDeviceInfo(Context context) {
+    static Map<String, String> getDeviceInfo(Context context) {
         final Map<String, String> deviceInfo = new HashMap<String, String>();
         deviceInfo.put("$android_lib_version", CandorConst.LIB_VERSION);
         deviceInfo.put("$android_os", "Android");
@@ -40,7 +40,7 @@ class CandorHelper {
 
     }
 
-    public static void initialize(final Context con, String userId) {
+    static void initialize(final Context con, String userId) {
         context = con;
         Map<String, String> deviceInfo = getDeviceInfo(context);
         registerActivityLifecycleCallbacks(context);
@@ -48,7 +48,7 @@ class CandorHelper {
 
     }
 
-    public static void registerActivityLifecycleCallbacks(Context context) {
+    static void registerActivityLifecycleCallbacks(Context context) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (context.getApplicationContext() instanceof Application) {
                 final Application app = (Application) context.getApplicationContext();
@@ -60,7 +60,7 @@ class CandorHelper {
         }
     }
 
-    public static void registerExperimentWorker() {
+    static void registerExperimentWorker() {
         WorkManager workManager = WorkManager.getInstance();
         workManager.cancelAllWorkByTag(context.getString(R.string.experiment_worker_tag));
         PeriodicWorkRequest getRequest = new PeriodicWorkRequest.Builder(GetExperimentWorker.class, 15, TimeUnit.HOURS)
@@ -70,14 +70,14 @@ class CandorHelper {
 
     }
 
-    public static Variant getExperiment(String experimentKey) {
+    static Variant getExperiment(String experimentKey) {
 
         CandorDBHelper dbHelper = new CandorDBHelper(context);
         Variant variant = dbHelper.getVariant(experimentKey);
         return variant;
     }
 
-    public static void track(Context context, String eventName, JSONObject properties) {
+    static void track(Context context, String eventName, JSONObject properties) {
         CandorDBHelper dbHelper = new CandorDBHelper(context);
         Event event = new Event(eventName, properties);
 
