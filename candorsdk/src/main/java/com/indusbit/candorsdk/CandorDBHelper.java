@@ -7,11 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 import android.util.Log;
-import org.json.JSONException;
+import androidx.annotation.Nullable;
+import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 class CandorDBHelper extends SQLiteOpenHelper {
 
@@ -20,11 +19,8 @@ class CandorDBHelper extends SQLiteOpenHelper {
 
     private final String CREATE_AB_VARIANT_TABLE = "CREATE TABLE " + CandorDBContract.ABVariantTable.TABLE_NAME + " (" +
             BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-            CandorDBContract.ABVariantTable.COLUMN_EXPERIMENT_KEY + " TEXT," +
-            CandorDBContract.ABVariantTable.COLUMN_VARIANT_KEY + " TEXT," +
-            CandorDBContract.ABVariantTable.COLUMN_VALUE_KEY + " TEXT," +
-            CandorDBContract.ABVariantTable.COLUMN_VALUE_TYPE + " TEXT," +
-            CandorDBContract.ABVariantTable.COLUMN_VALUE_VALUE + " TEXT)";
+            CandorDBContract.ABVariantTable.COLUMN_EXPERIMENTS_DATA + " TEXT," +
+            CandorDBContract.ABVariantTable.COLUMN_USER_ID + " TEXT)";
 
     private final String CREATE_TRACK_EVENT_TABLE = "CREATE TABLE " + CandorDBContract.TrackEventsTable.TABLE_NAME + " (" +
             BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -57,40 +53,55 @@ class CandorDBHelper extends SQLiteOpenHelper {
 
     }
 
-    public void saveExperiments(List<Experiment> experiments) {
+    public void saveExperiments(String experimentJson, String userId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        for (Experiment experiment : experiments) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(CandorDBContract.ABVariantTable.COLUMN_EXPERIMENTS_DATA, experimentJson);
+        contentValues.put(CandorDBContract.ABVariantTable.COLUMN_USER_ID, userId);
 
-            ContentValues contentValues = new ContentValues();
-
-            contentValues.put(CandorDBContract.ABVariantTable.COLUMN_EXPERIMENT_KEY, experiment.key);
-            contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VARIANT_KEY, experiment.variant.key);
-            contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_KEY, "");
-            contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_TYPE, "");
-            contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_VALUE, "");
-
-            long id = db.insert(CandorDBContract.ABVariantTable.TABLE_NAME, null, contentValues);
-
-            /*if(experiment.variant.values != null) {
-
-                for (Value value : experiment.variant.values) {
-                    ContentValues contentValues = new ContentValues();
-
-                    contentValues.put(CandorDBContract.ABVariantTable.COLUMN_EXPERIMENT_KEY, experiment.key);
-                    contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VARIANT_KEY, experiment.variant.key);
-                    contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_KEY, value.key);
-                    contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_TYPE, value.type);
-                    contentValues.put(CandorDBContract.ABVariantTable.COLUMN_VALUE_VALUE, value.value);
-
-                    long id = db.insert(CandorDBContract.ABVariantTable.TABLE_NAME, null, contentValues);
-
-                }
-            }*/
-        }
+        long id = db.insert(CandorDBContract.ABVariantTable.TABLE_NAME, null, contentValues);
 
         db.close();
 
+    }
+
+    public int deleteExperiments() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deletedRows = db.delete(CandorDBContract.ABVariantTable.TABLE_NAME, null, null);
+        Log.d(TAG, "database deleted");
+        return deletedRows;
+
+    }
+
+    @Nullable
+    public Experiments getExperiments(String userId) {
+        String json = getConfigJson(userId);
+        if (json == null) return null;
+
+        return new Gson().fromJson(json, Experiments.class);
+    }
+
+    @Nullable
+    public String getConfigJson(String userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selection = CandorDBContract.ABVariantTable.COLUMN_USER_ID + " = ?";
+        String selectionArgs[] = {userId};
+
+        Cursor cursor = db.query(CandorDBContract.ABVariantTable.TABLE_NAME,
+                null,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null);
+
+        if (cursor.moveToFirst()) {
+            return cursor.getString(cursor.getColumnIndex(CandorDBContract.ABVariantTable.COLUMN_EXPERIMENTS_DATA));
+        } else {
+            return null;
+        }
     }
 
     public long saveEvent(Event event) {
@@ -107,71 +118,13 @@ class CandorDBHelper extends SQLiteOpenHelper {
 
     }
 
-    public Variant getVariant(String experimentKey) {
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        List<Value> values = new ArrayList<Value>();
-
-        String selection = CandorDBContract.ABVariantTable.COLUMN_EXPERIMENT_KEY + " = ?";
-        String selectionArgs[] = {experimentKey};
-
-        Cursor cursor = db.query(CandorDBContract.ABVariantTable.TABLE_NAME,
-                null,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                null);
-
-        Variant variant = new Variant();
-
-        while (cursor.moveToNext()) {
-            Value value = new Value();
-            value.key = cursor.getString(cursor.getColumnIndex(CandorDBContract.ABVariantTable.COLUMN_VALUE_KEY));
-            value.type = cursor.getString(cursor.getColumnIndex(CandorDBContract.ABVariantTable.COLUMN_VALUE_TYPE));
-            value.value = cursor.getString(cursor.getColumnIndex(CandorDBContract.ABVariantTable.COLUMN_VALUE_VALUE));
-            values.add(value);
-
-            variant.key = cursor.getString(cursor.getColumnIndex(CandorDBContract.ABVariantTable.COLUMN_VARIANT_KEY));
-
-        }
-
-        if (values.size() == 0)
-            return null;
-
-        variant.values = values;
-        return variant;
+    public int deleteEvents() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int deletedRows = db.delete(CandorDBContract.TrackEventsTable.TABLE_NAME, null, null);
+        Log.d(TAG, "database deleted");
+        return deletedRows;
 
     }
 
-    List<Event> getEvents() throws JSONException {
-
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        Cursor cursor = db.query(CandorDBContract.TrackEventsTable.TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
-
-        List<Event> events = new ArrayList<Event>();
-
-        while (cursor.moveToNext()) {
-//            Event event = new Event();
-//            event.name = cursor.getString(cursor.getColumnIndex(CandorDBContract.TrackEventsTable.COLUMN_EVENT_NAME));
-//            event.properties = new JSONObject(cursor.getString(cursor.getColumnIndex(CandorDBContract.TrackEventsTable.COLUMN_EVENT_PROPERTIES)));
-//            events.add(event);
-        }
-
-        cursor.close();
-        return events;
-
-    }
-
-    public File getDatabaseFile() {
-        return databaseFile;
-    }
 }
 

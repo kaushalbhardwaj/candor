@@ -1,12 +1,22 @@
 package com.indusbit.candor
 
 import android.app.Application
+import android.util.Log
 import com.indusbit.candorsdk.Candor
+import java.util.*
 
-class MyApplication: Application() {
+class MyApplication : Application() {
+
+    private var candorInstance: Candor? = null
+
     override fun onCreate() {
         super.onCreate()
-//        Candor.initialize(this, "kaushal")
+        val uuid = UUID.randomUUID().toString()
+        Log.d("MyAPp", "UUID: $uuid")
+        candorInstance = Candor.initialize(applicationContext, "a2886e1ffd2c0021671abc1ae45acd7f", "kasdfasdf")
     }
 
+    public fun getInstance(): Candor? {
+        return candorInstance
+    }
 }

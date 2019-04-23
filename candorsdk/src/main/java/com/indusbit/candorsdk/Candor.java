@@ -27,7 +27,9 @@ import org.json.JSONObject;
 public class Candor {
 
     private final String TAG = "Candor";
+    private Context context = null;
     private static Candor instance = null;
+    private static CandorHelper candorHelper = null;
 
     /**
      * You shouldn't instantiate Candor Experiments directly.
@@ -46,9 +48,22 @@ public class Candor {
      * @return an instance of Candor associated with your project
      */
 
+    private Candor(Context context, String accountToken, String userId) {
+        this.context = context;
+        candorHelper = CandorHelper.initialize(context, accountToken, userId);
+    }
 
-    public static void initialize(Context context, String userId) {
-        CandorHelper.initialize(context, userId);
+    public static Candor initialize(Context context, String accountToken, String userId) {
+
+        if (accountToken == null)
+            return null;
+
+        if (userId == null)
+            return null;
+
+        if (instance == null)
+            instance = new Candor(context, accountToken, userId);
+        return instance;
     }
 
     /**
@@ -62,8 +77,8 @@ public class Candor {
      *
      * @param experimentKey The key of the experiment you want to activate
      */
-    public static Variant getExperiment(String experimentKey) {
-        return CandorHelper.getExperiment(experimentKey);
+    public Experiment getExperiment(String experimentKey) {
+        return candorHelper.getExperiment(context, experimentKey);
     }
 
     /**

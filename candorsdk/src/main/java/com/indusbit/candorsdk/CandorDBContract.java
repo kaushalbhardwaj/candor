@@ -6,11 +6,8 @@ public interface CandorDBContract {
 
     public interface ABVariantTable {
         final String TABLE_NAME = "abvariant";
-        final String COLUMN_EXPERIMENT_KEY = "experiment_key";
-        final String COLUMN_VARIANT_KEY = "variant_key";
-        final String COLUMN_VALUE_KEY = "value_key";
-        final String COLUMN_VALUE_TYPE = "value_type";
-        final String COLUMN_VALUE_VALUE = "value_value";
+        final String COLUMN_EXPERIMENTS_DATA = "experiments_data";
+        final String COLUMN_USER_ID = "user_id";
     }
 
     public interface TrackEventsTable {

@@ -10,8 +10,6 @@ public class Variant {
     @SerializedName("values")
     List<Value> values;
 
-    public final static String DEFAULT = "default";
-
     public String getKey() {
         return key;
     }

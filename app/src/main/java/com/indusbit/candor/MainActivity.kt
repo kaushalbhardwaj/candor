@@ -13,12 +13,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Candor.initialize(applicationContext, "kaushal")
+        val myApplication = application as MyApplication
+        val candor = myApplication.getInstance()
 
-        val variant = Candor.getExperiment("btn_colour")
+        val experiment = candor!!.getExperiment("btn_colour")
 
-        if (variant != null)
-            findViewById<TextView>(R.id.variant_key).text = variant.key
+        if (experiment != null) {
+            findViewById<TextView>(R.id.variant_key).text = experiment.variant.key
+        } else {
+            findViewById<TextView>(R.id.variant_key).text = "default logic"
+        }
+
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
             val intent = Intent(applicationContext, Main2Activity::class.java)

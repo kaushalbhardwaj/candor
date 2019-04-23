@@ -10,6 +10,7 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
+            android:name=".MyApplication"
             android:theme="@style/AppTheme">
         <activity android:name=".Main2Activity">
         </activity>
@@ -20,12 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <meta-data android:name="io.candor.AccountToken"
-                   android:value="a2886e1ffd2c0021671abc1ae45acd7f" />
-
-        <meta-data android:name="io.candor.UserToken"
-                   android:value="kaushal" />
-
     </application>
 
 </manifest>
