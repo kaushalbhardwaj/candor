@@ -14,8 +14,9 @@ import java.io.File;
 
 class CandorDBHelper extends SQLiteOpenHelper {
 
-    private final String TAG = "CandroDBHelper";
+    private final String TAG = "CandorDBHelper";
     private final File databaseFile;
+    private static ExperimentFetchedListener listener = null;
 
     private final String CREATE_AB_VARIANT_TABLE = "CREATE TABLE " + CandorDBContract.ABVariantTable.TABLE_NAME + " (" +
             BaseColumns._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -53,7 +54,7 @@ class CandorDBHelper extends SQLiteOpenHelper {
 
     }
 
-    public void saveExperiments(String experimentJson, String userId) {
+    public void saveExperiments(Context context, String experimentJson, String userId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues contentValues = new ContentValues();
@@ -63,6 +64,12 @@ class CandorDBHelper extends SQLiteOpenHelper {
         long id = db.insert(CandorDBContract.ABVariantTable.TABLE_NAME, null, contentValues);
 
         db.close();
+
+        if (listener != null) {
+            Log.d(TAG, "listener not null");
+            listener.onExperimentFetched(new Gson().fromJson(experimentJson, Experiments.class));
+        } else
+            Log.d(TAG, "listener null");
 
     }
 
@@ -77,7 +84,8 @@ class CandorDBHelper extends SQLiteOpenHelper {
     @Nullable
     public Experiments getExperiments(String userId) {
         String json = getConfigJson(userId);
-        if (json == null) return null;
+        if (json == null)
+            return null;
 
         return new Gson().fromJson(json, Experiments.class);
     }
@@ -126,5 +134,8 @@ class CandorDBHelper extends SQLiteOpenHelper {
 
     }
 
+    public void setExperimentFetchedListener(ExperimentFetchedListener listener) {
+        CandorDBHelper.listener = listener;
+    }
 }
 

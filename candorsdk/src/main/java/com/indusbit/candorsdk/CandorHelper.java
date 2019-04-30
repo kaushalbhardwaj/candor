@@ -20,16 +20,23 @@ public class CandorHelper {
     private final String TAG = "CandorHelper";
     public static final String ACCOUNT_TOKEN_KEY = "account_token_key";
     public static final String USER_ID_KEY = "user_id_key";
+    public static final String VARIANT_KEY = "variant_key";
+    public static final String EXPERIMENT_KEY = "experiment_key";
+    public static final String EVENT_NAME_KEY = "event_name_key";
+    public static final String EVENT_PROPERTIES_KEY = "event_properties_key";
 
     private Experiments experiments = null;
     private String userId = null;
+    private String accountToken = null;
     private Map<String, String> deviceInfo = null;
+    CandorDBHelper dbHelper = null;
 
     private CandorHelper(Context context, String accountToken, String userId) {
 
         this.userId = userId;
-
-        deviceInfo = getDeviceInfo(context);
+        this.deviceInfo = getDeviceInfo(context);
+        this.dbHelper = new CandorDBHelper(context);
+        this.accountToken = accountToken;
         registerActivityLifecycleCallbacks(context);
         registerExperimentWorker(context, accountToken, userId);
 
@@ -67,9 +74,14 @@ public class CandorHelper {
 
     public Experiment getExperiment(Context context, String experimentKey) {
 
+        if (userId == null || experimentKey == null)
+            return null;
+
         if (experiments != null) {
             Log.d(TAG, "inside cache data" + experiments.toString());
-            return getExperimentFromExperiments(experimentKey);
+            Experiment experiment = getExperimentFromExperiments(experimentKey);
+            activateExperiment(experiment);
+            return experiment;
 
         }
 
@@ -79,8 +91,29 @@ public class CandorHelper {
             return null;
 
         Log.d(TAG, "new data retrieved" + experiments.toString());
-        return getExperimentFromExperiments(experimentKey);
+        Experiment experiment = getExperimentFromExperiments(experimentKey);
+        activateExperiment(experiment);
+        return experiment;
     }
+
+    private void activateExperiment(Experiment experiment) {
+
+        Data.Builder builder = new Data.Builder();
+        builder.putString(ACCOUNT_TOKEN_KEY, accountToken);
+        builder.putString(USER_ID_KEY, userId);
+        builder.putString(EXPERIMENT_KEY, experiment.key);
+        builder.putString(VARIANT_KEY, experiment.variant.key);
+        Data data = builder.build();
+        Log.d("ActivateExpWorker", "inside");
+
+        WorkManager workManager = WorkManager.getInstance();
+        OneTimeWorkRequest getRequest = new OneTimeWorkRequest.Builder(ActivateExperimentWorker.class)
+                .setInputData(data)
+                .build();
+        workManager.enqueue(getRequest);
+
+    }
+
 
     private Experiment getExperimentFromExperiments(String experimentKey) {
 
@@ -114,11 +147,25 @@ public class CandorHelper {
 
     }
 
-    private void track(Context context, String eventName, JSONObject properties) {
-        CandorDBHelper dbHelper = new CandorDBHelper(context);
-        Event event = new Event(eventName, properties);
+    public void track(Context context, String experimentKey, String eventName, JSONObject properties) {
 
-        dbHelper.saveEvent(event);
+        Data.Builder builder = new Data.Builder();
+        builder.putString(ACCOUNT_TOKEN_KEY, accountToken);
+        builder.putString(USER_ID_KEY, userId);
+        builder.putString(EXPERIMENT_KEY, experimentKey);
+        builder.putString(EVENT_NAME_KEY, eventName);
+        builder.putString(EVENT_PROPERTIES_KEY, properties.toString());
+        Data data = builder.build();
+
+        WorkManager workManager = WorkManager.getInstance();
+        OneTimeWorkRequest getRequest = new OneTimeWorkRequest.Builder(SendEventWorker.class)
+                .setInputData(data)
+                .build();
+        workManager.enqueue(getRequest);
+
     }
 
+    public void setExperimentFetchedListener(ExperimentFetchedListener listener) {
+        dbHelper.setExperimentFetchedListener(listener);
+    }
 }

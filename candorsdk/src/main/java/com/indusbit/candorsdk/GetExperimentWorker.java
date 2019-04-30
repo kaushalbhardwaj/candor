@@ -32,35 +32,21 @@ public class GetExperimentWorker extends Worker {
         ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
 
         Call<Experiments> call = apiService.getExperiments(accountToken, userId);
+
         try {
 
-            call.enqueue(new Callback<Experiments>() {
-                @Override
-                public void onResponse(Call<Experiments> call, Response<Experiments> response) {
+            Experiments experiments = call.execute().body();
 
-                    if (response.isSuccessful()) {
+            CandorDBHelper dbHelper = new CandorDBHelper(context);
+            dbHelper.deleteExperiments();
+            String experimentJson = new Gson().toJson(experiments);
 
-                        CandorDBHelper dbHelper = new CandorDBHelper(context);
-                        dbHelper.deleteExperiments();
-                        String experimentJson = new Gson().toJson(response.body());
-
-                        dbHelper.saveExperiments(experimentJson, userId);
-                        Log.d(TAG, "worker successful -- " + response.body().experiments.toString());
-
-                    }
-
-                }
-
-                @Override
-                public void onFailure(Call<Experiments> call, Throwable t) {
-                    Log.d(TAG, "error is-" + t.toString());
-
-                }
-            });
+            dbHelper.saveExperiments(context, experimentJson, userId);
+            Log.d(TAG, "worker successful -- " + experiments.toString());
 
         } catch (Exception e) {
             Log.e(TAG, e.toString());
-            return Result.failure();
+            return Result.retry();
         }
 
         return Result.success();

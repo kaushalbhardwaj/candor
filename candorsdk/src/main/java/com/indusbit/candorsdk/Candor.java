@@ -1,6 +1,7 @@
 package com.indusbit.candorsdk;
 
 import android.content.Context;
+import androidx.annotation.Nullable;
 import org.json.JSONObject;
 
 /**
@@ -28,8 +29,10 @@ public class Candor {
 
     private final String TAG = "Candor";
     private Context context = null;
-    private static Candor instance = null;
-    private static CandorHelper candorHelper = null;
+    private CandorHelper candorHelper = null;
+    private String accountToken = null;
+    private ExperimentFetchedListener listener = null;
+
 
     /**
      * You shouldn't instantiate Candor Experiments directly.
@@ -48,22 +51,45 @@ public class Candor {
      * @return an instance of Candor associated with your project
      */
 
-    private Candor(Context context, String accountToken, String userId) {
+    private Candor(Context context, String accountToken) {
         this.context = context;
-        candorHelper = CandorHelper.initialize(context, accountToken, userId);
+        this.accountToken = accountToken;
     }
 
+    @Nullable
+    public static Candor initialize(Context context, String accountToken) {
+
+        if (context == null || accountToken == null)
+            return null;
+
+        return new Candor(context, accountToken);
+
+    }
+
+    @Nullable
     public static Candor initialize(Context context, String accountToken, String userId) {
 
-        if (accountToken == null)
+        Candor candor = initialize(context, accountToken);
+        if (candor == null || userId == null)
             return null;
 
-        if (userId == null)
-            return null;
+        candor.signIn(userId);
+        return candor;
+    }
 
-        if (instance == null)
-            instance = new Candor(context, accountToken, userId);
-        return instance;
+    public void signIn(String userId) {
+        if (userId == null) {
+            candorHelper = null;
+            return;
+        }
+
+        candorHelper = CandorHelper.initialize(context, accountToken, userId);
+
+    }
+
+    public void signOut() {
+        candorHelper = null;
+
     }
 
     /**
@@ -78,6 +104,9 @@ public class Candor {
      * @param experimentKey The key of the experiment you want to activate
      */
     public Experiment getExperiment(String experimentKey) {
+        if (candorHelper == null)
+            return null;
+
         return candorHelper.getExperiment(context, experimentKey);
     }
 
@@ -95,9 +124,22 @@ public class Candor {
      *                   Pass null if no extra properties exist
      */
 
-    public void track(String eventName, JSONObject properties) {
+    public void track(String experimentKey, String eventName, JSONObject properties) {
 
-//        CandorHelper.track(context, eventName, properties);
+        if (candorHelper == null || eventName == null || properties == null)
+            return;
+
+        candorHelper.track(context, experimentKey, eventName, properties);
+
+        return;
+
     }
 
+    public void setExperimentFetchedListener(ExperimentFetchedListener listener) {
+        if (listener == null || candorHelper == null)
+            return;
+
+        candorHelper.setExperimentFetchedListener(listener);
+
+    }
 }

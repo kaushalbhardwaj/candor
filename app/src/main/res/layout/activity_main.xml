@@ -19,5 +19,9 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:id="@+id/button"/>
+    <TextView
+            android:text="Last Value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/last_value"/>
 
 </RelativeLayout>

@@ -1,12 +1,16 @@
 package com.indusbit.candorsdk;
 
+import com.google.gson.annotations.SerializedName;
 import org.json.JSONObject;
 
 public class Event {
-    String name;
-    JSONObject properties;
 
-    Event(String name, JSONObject properties) {
+    @SerializedName("name")
+    String name;
+    String properties;
+    long id;
+
+    Event(String name, String properties) {
         this.name = name;
         this.properties = properties;
     }
@@ -19,11 +23,15 @@ public class Event {
         this.name = name;
     }
 
-    public JSONObject getProperties() {
+    public String getProperties() {
         return properties;
     }
 
-    public void setProperties(JSONObject properties) {
+    public void setProperties(String properties) {
         this.properties = properties;
+    }
+
+    private void setId(long id) {
+        this.id = id;
     }
 }

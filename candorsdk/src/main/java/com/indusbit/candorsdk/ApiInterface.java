@@ -14,9 +14,21 @@ public interface ApiInterface {
                                      @Header("User-Token") String userToken);
 
     @FormUrlEncoded
-    @POST("activate")
-    void activateExperiment(@Header("User-Token") String userToken,
-                            @Header("Account-Token") String accountToken);
+    @POST("experiments/{experiment_key}/activate")
+    Call<Void> activateExperiment(@Header("Account-Token") String accountToken,
+                                  @Header("User-Token") String userToken,
+                                  @Path("experiment_key") String experimentKey,
+                                  @Field("variant") String variantKey);
+
+    @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+    })
+    @POST("experiments/{experiment_key}/events")
+    Call<Void> sendEvents(@Header("Account-Token") String accountToken,
+                          @Header("User-Token") String userToken,
+                          @Path("experiment_key") String experimentKey,
+                          @Body EventBody eventBody);
 
 
 }
