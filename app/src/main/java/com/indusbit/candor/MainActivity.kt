@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         properties.put("asdf", "sadf")
         properties.put("asdf", "sadf")
 
-        candor.track("name", properties)
+//        candor.track("name", properties)
 
         if (experiment != null)
             findViewById<TextView>(R.id.last_value).text = experiment.variant.key
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         val button = findViewById<Button>(R.id.button)
         button.setOnClickListener {
-            candor.track("name", properties)
+//            candor.track("name", properties)
 
             val intent = Intent(applicationContext, Main2Activity::class.java)
             startActivity(intent)
